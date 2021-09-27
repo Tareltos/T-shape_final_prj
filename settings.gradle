@@ -1,0 +1,4 @@
+rootProject.name = 'T-Shape(Final prj)'
+include 'order-service'
+include 'book-service'
+
