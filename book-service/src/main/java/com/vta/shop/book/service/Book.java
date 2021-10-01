@@ -42,6 +42,9 @@ public class Book {
     @Column(name = "description")
     private String description;
 
+    @Column(name = "image")
+    private String image;
+
     @Column(name = "available_count", nullable = false)
     private int count;
 

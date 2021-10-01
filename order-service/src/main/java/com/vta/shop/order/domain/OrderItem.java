@@ -29,6 +29,12 @@ public class OrderItem implements Serializable {
     @Column(name = "book_id")
     private Long bookId;
 
+    @Column(name = "description", nullable = false)
+    private String description;
+
+    @Column(name = "title", nullable = false)
+    private String title;
+
     @Column(name = "price", nullable = false)
     private BigDecimal price;
 

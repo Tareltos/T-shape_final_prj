@@ -1,21 +1,20 @@
 package com.vta.shop.cart.controller;
 
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.vta.shop.cart.domain.Cart;
 import com.vta.shop.cart.domain.CartItem;
 import com.vta.shop.cart.service.CartService;
 
-@RestController("/cart")
+@RestController
+@RequestMapping(value = "/cart")
 public class CartController {
 
     private final CartService cartService;
@@ -27,27 +26,15 @@ public class CartController {
     }
 
     @GetMapping
-    public Cart getCart(@RequestParam String userId) {
+    public List<CartItem> getCartItems(@RequestParam("userId") String userId) {
 
-        return cartService.getCart(userId);
+        return cartService.getCartItems(userId);
     }
 
-    @PostMapping("/{cartId}")
-    public void addItem(@PathVariable Long cartId, @RequestBody CartItem cartItem) {
+    @PutMapping
+    public List<CartItem> update(@RequestParam("userId") String userId, @RequestBody List<CartItem> cartItem) {
 
-        cartService.addItem(cartId, cartItem);
+        return cartService.updateCart(userId, cartItem);
     }
 
-
-    @DeleteMapping("/{cartId}/items/{itemId}")
-    public void deleteItem(@PathVariable Long cartId, @PathVariable Long itemId) {
-
-        cartService.deleteItem(cartId, itemId);
-    }
-
-    @PutMapping("/{cartId}/items/{itemId}")
-    public void deleteItem(@PathVariable Long cartId, @PathVariable Long itemId, @RequestParam Integer count) {
-
-        cartService.updateCount(cartId, itemId, count);
-    }
 }

@@ -1,13 +1,17 @@
 package com.vta.shop.cart.service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.vta.shop.cart.domain.Cart;
 import com.vta.shop.cart.domain.CartItem;
 
 
@@ -25,40 +29,36 @@ public class CartServiceImpl implements CartService {
 
 
     @Override
-    public Cart getCart(String userId) {
+    public List<CartItem> getCartItems(String userId) {
 
-        return cartRepository.getByUserId(userId)
-                .orElse(cartRepository.save(Cart.builder().userId(userId).build()));
+        return this.cartRepository.getByUserId(userId);
     }
 
     @Override
-    public void addItem(Long cartId, CartItem cartItem) {
+    public List<CartItem> updateCart(String userId, List<CartItem> cartItems) {
 
-        Cart cart = cartRepository.getById(cartId);
-        cart.getItems().add(cartItem);
-        cartRepository.save(cart);
-    }
-
-    @Override
-    public void deleteItem(Long cartId, Long cartItemId) {
-
-        Cart cart = cartRepository.getById(cartId);
-        List<CartItem> cartItems = cart.getItems().stream().filter(i -> !i.getId().equals(cartItemId))
+        List<CartItem> items = this.cartRepository.getByUserId(userId);
+        List<CartItem> toSave = cartItems.stream().filter(item -> Objects.isNull(item.getId()))
                 .collect(Collectors.toList());
 
-        cart.getItems().clear();
-        cart.getItems().addAll(cartItems);
-        cartRepository.save(cart);
-    }
+        Map<Long, CartItem> toUpdate = cartItems.stream().filter(item -> Objects.nonNull(item.getId()))
+                .collect(Collectors.toMap(CartItem::getId, Function
+                        .identity()));
 
-    @Override
-    public void updateCount(Long cartId, Long itemId, Integer count) {
+        List<CartItem> toDelete = new ArrayList<>();
 
-        Cart cart = cartRepository.getById(cartId);
-        cart.getItems().stream().filter(i -> i.getId().equals(itemId))
-                .findFirst().ifPresent(cartItem -> {
-            cartItem.setCount(count);
-        });
-        cartRepository.save(cart);
+        items.forEach(persisted -> {
+                    Optional<CartItem> updated = Optional.ofNullable(toUpdate.get(persisted.getId()));
+                    if (updated.isPresent()) {
+                        persisted.setCount(updated.get().getCount());
+                        toSave.add(persisted);
+                    } else {
+                        toDelete.add(persisted);
+                    }
+                }
+        );
+        this.cartRepository.deleteAll(toDelete);
+
+        return this.cartRepository.saveAll(toSave);
     }
 }
